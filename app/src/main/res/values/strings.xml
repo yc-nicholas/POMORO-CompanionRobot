@@ -31,4 +31,5 @@
     <string name="scanning">Scanning...</string>
     <string name="scan_completed">Scan Completed!</string>
     <string name="connect_robot_required">Connect to robot via bluetooth first!</string>
+    <string name="enable_tts">Please enable Google Text-to-speech Engine</string>
 </resources>

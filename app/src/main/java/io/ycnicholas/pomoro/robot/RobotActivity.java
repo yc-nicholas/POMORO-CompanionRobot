@@ -7,10 +7,17 @@ import io.ycnicholas.pomoro.constant.ExtraKey;
 import io.ycnicholas.pomoro.R;
 
 import java.io.ByteArrayOutputStream;
+import java.util.HashMap;
+import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.AnimationDrawable;
 import android.os.Bundle;
+import android.speech.tts.TextToSpeech;
+import android.speech.tts.UtteranceProgressListener;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceHolder.Callback;
 import android.view.View.OnClickListener;
@@ -20,25 +27,20 @@ import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import javax.xml.datatype.Duration;
 
-public class RobotActivity extends RobotSetupActivity implements CameraManager.CameraManagerListener, Callback, SocketConnectionManager.ConnectionListener, SocketConnectionManager.ControllerCommandListener, SocketConnectionManager.SendCommandListener {
+
+public class RobotActivity extends RobotSetupActivity implements CameraManager.CameraManagerListener, Callback, SocketConnectionManager.ConnectionListener, SocketConnectionManager.ControllerCommandListener, SocketConnectionManager.SendCommandListener, TextToSpeech.OnInitListener {
     private static final int TAKE_PICTURE_COOLDOWN = 1000;
     private RelativeLayout layoutParent;
-    private TextView tvMovementSpeed;
-    private TextView tvIpAddress;
-    private Button btnMoveForward;
-    private Button btnMoveForwardLeft;
-    private Button btnMoveForwardRight;
-    private Button btnMoveDown;
-    private Button btnMoveDownLeft;
-    private Button btnMoveDownRight;
-    private Button btnMoveRight;
-    private Button btnMoveLeft;
     private SurfaceView surfacePreview;
+    AnimationDrawable blinkAnimation, talkAnimation;
+    ImageView emojiBlinkView, emojiTalkView;
 
     private int movementSpeed = 0;
     private int lastPictureTakenTime = 0;
@@ -47,6 +49,7 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
     private SocketConnectionManager socketConnectionManager;
     private CameraManager cameraManager;
     private OrientationManager orientationManager;
+    private TextToSpeech tts;
 
     private int imageQuality;
     private boolean isConnected = false;
@@ -54,26 +57,12 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
         setContentView(R.layout.activity_robot);
 
         String password = getIntent().getExtras().getString(ExtraKey.OWN_PASSWORD);
         int selectedPreviewSize = getIntent().getExtras().getInt(ExtraKey.PREVIEW_SIZE);
         imageQuality = getIntent().getExtras().getInt(ExtraKey.QUALITY);
-
-        btnMoveForward = (Button) findViewById(R.id.btn_move_forward);
-        btnMoveForwardLeft = (Button) findViewById(R.id.btn_move_forward_left);
-        btnMoveForwardRight = (Button) findViewById(R.id.btn_move_forward_right);
-        btnMoveDown = (Button) findViewById(R.id.btn_move_backward);
-        btnMoveDownLeft = (Button) findViewById(R.id.btn_move_backward_left);
-        btnMoveDownRight = (Button) findViewById(R.id.btn_move_backward_right);
-        btnMoveRight = (Button) findViewById(R.id.btn_move_right);
-        btnMoveLeft = (Button) findViewById(R.id.btn_move_left);
-
-        tvMovementSpeed = (TextView) findViewById(R.id.tv_movement_speed);
-
-        tvIpAddress = (TextView) findViewById(R.id.tv_ip_address);
-        tvIpAddress.setText(Utilities.getCurrentIP(this));
 
         surfacePreview = (SurfaceView) findViewById(R.id.surface_preview);
         surfacePreview.getHolder().addCallback(this);
@@ -86,8 +75,30 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
                 cameraManager.requestAutoFocus();
             }
         });
+
+        // Load the ImageView that will host the animation and
+        // set its foreground to our AnimationDrawable XML resource.
+        emojiBlinkView = (ImageView) findViewById(R.id.emojiBlinkView);
+        emojiBlinkView.setImageDrawable(getResources().getDrawable(
+                R.drawable.emoji_blink_animation));
+        emojiBlinkView.setBackgroundColor(Color.rgb(253, 209, 100));
+
+        emojiTalkView = (ImageView) findViewById(R.id.emojiTalkView);
+        emojiTalkView.setImageDrawable(getResources().getDrawable(
+                R.drawable.emoji_talk_animation));
+        emojiTalkView.setBackgroundColor(Color.rgb(253, 209, 100));
+        emojiTalkView.setVisibility(View.INVISIBLE);
+
+        // Get the drawables, which has been compiled to an AnimationDrawable object
+        blinkAnimation = (AnimationDrawable) emojiBlinkView.getDrawable();
+        talkAnimation = (AnimationDrawable) emojiTalkView.getDrawable();
+
+        blinkAnimation.start();
+
+        tts = new TextToSpeech(this, this);
+        tts.setOnUtteranceProgressListener(new ttsUtteranceListener());
+
         socketConnectionManager = new SocketConnectionManager(password);
-        socketConnectionManager.start();
         socketConnectionManager.setConnectionListener(this);
         socketConnectionManager.setCommandListener(this);
         socketConnectionManager.setSendCommandListener(this);
@@ -97,32 +108,101 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
         cameraManager.setCameraManagerListener(this);
     }
 
+    class ttsUtteranceListener extends UtteranceProgressListener {
+
+        @Override
+        public void onDone(String utteranceId) {
+            startBlinkAnimation();
+        }
+
+        @Override
+        public void onError(String utteranceId) {
+        }
+
+        @Override
+        public void onStart(String utteranceId) {
+            startTalkAnimation();
+        }
+    }
+
     public void onStop() {
         super.onStop();
         socketConnectionManager.stop();
+        if (tts != null) {
+            tts.stop();
+            tts.shutdown();
+        }
         finish();
     }
 
-    public void clearCheckBox() {
-        btnMoveForward.setPressed(false);
-        btnMoveForwardLeft.setPressed(false);
-        btnMoveForwardRight.setPressed(false);
-        btnMoveDown.setPressed(false);
-        btnMoveDownLeft.setPressed(false);
-        btnMoveDownRight.setPressed(false);
-        btnMoveRight.setPressed(false);
-        btnMoveLeft.setPressed(false);
+    private void startBlinkAnimation() {
+        runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                // Stop talking animation
+                talkAnimation.stop();
+                emojiTalkView.setVisibility(View.INVISIBLE);
+                // Resume blink animation
+                emojiBlinkView.setVisibility(View.VISIBLE);
+                blinkAnimation.start();
+            }
+        }));
+    }
+
+    private void startTalkAnimation() {
+        runOnUiThread(new Thread(new Runnable() {
+            public void run() {
+                // Stop current animation
+                blinkAnimation.stop();
+                emojiBlinkView.setVisibility(View.INVISIBLE);
+                emojiTalkView.setVisibility(View.VISIBLE);
+                // Start talking animation
+                talkAnimation.start();
+            }
+        }));
+    }
+
+    private void speak(String text) {
+        if (text != null) {
+            HashMap<String, String> myHashSpeech = new HashMap<String, String>();
+            myHashSpeech.put(TextToSpeech.Engine.KEY_PARAM_UTTERANCE_ID,
+                    "HELLO");
+            if (!tts.isSpeaking()) {
+                tts.speak(text, TextToSpeech.QUEUE_FLUSH, myHashSpeech);
+            }
+
+        }
+    }
+
+    @Override
+    public void onInit(int status) {
+        if (status == TextToSpeech.SUCCESS) {
+
+            int result = tts.setLanguage(Locale.getDefault());
+
+            if (result == TextToSpeech.LANG_MISSING_DATA
+                    || result == TextToSpeech.LANG_NOT_SUPPORTED) {
+                Log.e("TTS", "This Language is not supported");
+            }else{
+                speak("Hey, human! You are looking great!");
+            }
+
+        } else {
+            Toast.makeText(getApplicationContext(), getString(R.string.enable_tts), Toast.LENGTH_SHORT).show();
+            Log.e("TTS", "Initilization Failed!");
+        }
+
+        // onInit won't fired until after an asynctask has finished execution. Hence, we only start socket connection from here
+        socketConnectionManager.start();
     }
 
     @SuppressLint("StringFormatMatches")
     public void updateMovementSpeed(int speed) {
         movementSpeed = speed;
-        tvMovementSpeed.setText(getString(R.string.movement_speed, speed));
     }
 
     @Override
     public void onDataIncoming() {
-        clearCheckBox();
+        //clearCheckBox();
     }
 
     @Override
@@ -176,56 +256,48 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
     @Override
     public void onMoveForwardCommand(int movementSpeed) {
-        btnMoveForward.setPressed(true);
         directionState = DirectionState.UP;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveForwardRightCommand(int movementSpeed) {
-        btnMoveForwardRight.setPressed(true);
         directionState = DirectionState.UPRIGHT;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveForwardLeftCommand(int movementSpeed) {
-        btnMoveForwardLeft.setPressed(true);
         directionState = DirectionState.UPLEFT;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveBackwardCommand(int movementSpeed) {
-        btnMoveDown.setPressed(true);
         directionState = DirectionState.DOWN;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveBackwardRightCommand(int movementSpeed) {
-        btnMoveDownRight.setPressed(true);
         directionState = DirectionState.DOWNRIGHT;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveBackwardLeftCommand(int movementSpeed) {
-        btnMoveDownLeft.setPressed(true);
         directionState = DirectionState.DOWNLEFT;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveLeftCommand(int movementSpeed) {
-        btnMoveLeft.setPressed(true);
         directionState = DirectionState.LEFT;
         updateMovementSpeed(movementSpeed);
     }
 
     @Override
     public void onMoveRightCommand(int movementSpeed) {
-        btnMoveRight.setPressed(true);
         directionState = DirectionState.RIGHT;
         updateMovementSpeed(movementSpeed);
     }
