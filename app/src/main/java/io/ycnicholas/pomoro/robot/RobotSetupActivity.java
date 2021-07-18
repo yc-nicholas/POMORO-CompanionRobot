@@ -126,6 +126,12 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
     }
 
     @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        bluetoothService.disconnect();
+    }
+
+    @Override
     public void onClick(View v) {
         int id = v.getId();
         if (id == R.id.btn_preview_size_chooser) {
