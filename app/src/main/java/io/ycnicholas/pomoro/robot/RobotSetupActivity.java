@@ -73,6 +73,7 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
     private BluetoothService bluetoothService;
     private ArrayList<BluetoothDevice> bluetoothDevices;
 
+    private boolean bluetoothConfigured = false;
     private boolean robotConnected = false;
 
     protected void onCreate(Bundle savedInstanceState) {
@@ -85,7 +86,7 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
         String password = settings.getString(ExtraKey.OWN_PASSWORD, "");
         int quality = settings.getInt(ExtraKey.QUALITY, 100);
         bluetoothAddress = settings.getString(ExtraKey.BLUETOOTH_ADDRESS,"");
-        bluetoothName = settings.getString(ExtraKey.BLUETOOTH_NAME, "Configure Bluetooth");
+        bluetoothName = settings.getString(ExtraKey.BLUETOOTH_NAME, "");
 
         etPassword = (EditText) findViewById(R.id.et_password);
         etPassword.setText(password);
@@ -202,10 +203,16 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
         if (pairedDevices.size() > 0) {
             for (BluetoothDevice device : pairedDevices) {
                 if(device.getAddress().equals(bluetoothAddress)){
+                    bluetoothConfigured = true;
+                    updateSelectedBluetoothDevice();
                     connectRobot(device);
                 }
                 bluetoothDevices.add(device);
             }
+        }
+        if(!bluetoothConfigured){
+            tvRobotStatus.setText(getString(R.string.config_bluetooth));
+            tvRobotStatus.setTextColor(getResources().getColor(R.color.black));
         }
     }
 
@@ -371,8 +378,6 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
 
     private void connectRobot(BluetoothDevice device){
         bluetoothService.connect(device);
-        tvRobotStatus.setText(getString(R.string.connecting));
-        tvRobotStatus.setTextColor(getResources().getColor(R.color.orange));
     }
 
     @Override
@@ -387,7 +392,13 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
             tvRobotStatus.setText(getString(R.string.connected));
             tvRobotStatus.setTextColor(getResources().getColor(R.color.green));
             robotConnected = true;
-        }else {
+        }
+        if (status == BluetoothStatus.CONNECTING){
+            tvRobotStatus.setText(getString(R.string.connecting));
+            tvRobotStatus.setTextColor(getResources().getColor(R.color.orange));
+            robotConnected = false;
+        }
+        if (status == BluetoothStatus.NONE){
             tvRobotStatus.setText(getString(R.string.offline));
             tvRobotStatus.setTextColor(getResources().getColor(R.color.pink));
             robotConnected = false;

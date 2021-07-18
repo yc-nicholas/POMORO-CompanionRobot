@@ -23,7 +23,7 @@
     <string name="photo_taken">Photo Taken.</string>
     <string name="connection_accepted">Connection accepted</string>
     <string name="retrieve_ip">Retrieving IP...</string>
-    <string name="config_bluetooth">Configure Bluetooth</string>
+    <string name="config_bluetooth">Configure Bluetooth -> </string>
     <string name="robot_status">Robot Status</string>
     <string name="offline">Offline</string>
     <string name="online">Online</string>
