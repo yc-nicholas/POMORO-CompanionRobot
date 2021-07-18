@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.utils;
+package io.ycnicholas.pomoro.utils;
 
 import android.content.Context;
 import android.graphics.Bitmap;

@@ -1,6 +1,5 @@
-package app.akexorcist.ioiocamerarobot.ioio;
+package io.ycnicholas.pomoro.robot;
 
-import android.content.Context;
 import android.os.AsyncTask;
 import android.os.Handler;
 import android.util.Log;
@@ -18,10 +17,10 @@ import java.net.Socket;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 
-import app.akexorcist.ioiocamerarobot.constant.Command;
+import io.ycnicholas.pomoro.constant.Command;
 
-public class IOIOService extends AsyncTask<Void, Void, Void> {
-    private static final String TAG = "IOIOService";
+public class RobotService extends AsyncTask<Void, Void, Void> {
+    private static final String TAG = "RobotService";
     private static final int PORT = 21111;
 
     private boolean isTaskRunning = true;
@@ -33,7 +32,7 @@ public class IOIOService extends AsyncTask<Void, Void, Void> {
     private InputStream inputStream;
     private Handler handler;
 
-    public IOIOService(Handler handler, String password) {
+    public RobotService(Handler handler, String password) {
         this.handler = handler;
         this.password = password;
     }

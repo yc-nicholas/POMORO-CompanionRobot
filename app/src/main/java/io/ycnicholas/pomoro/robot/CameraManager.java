@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.ioio;
+package io.ycnicholas.pomoro.robot;
 
 import android.graphics.Bitmap;
 import android.hardware.Camera;
@@ -40,7 +40,7 @@ public class CameraManager implements Camera.PictureCallback, Camera.PreviewCall
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
         int imageNum = 0;
-        File imagesFolder = new File(Environment.getExternalStorageDirectory(), "DCIM/IOIOCameraRobot");
+        File imagesFolder = new File(Environment.getExternalStorageDirectory(), "DCIM/POMOROCompanionRobot");
         imagesFolder.mkdirs();
 
         SimpleDateFormat sd = new SimpleDateFormat("yyyyMMdd-hhmmss");

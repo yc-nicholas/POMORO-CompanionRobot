@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.controller;
+package io.ycnicholas.pomoro.controller;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -14,15 +14,15 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
-import app.akexorcist.ioiocamerarobot.R;
-import app.akexorcist.ioiocamerarobot.constant.Command;
-import app.akexorcist.ioiocamerarobot.constant.ExtraKey;
+import io.ycnicholas.pomoro.R;
+import io.ycnicholas.pomoro.constant.Command;
+import io.ycnicholas.pomoro.constant.ExtraKey;
 
-public class ControllerActivity extends Activity implements ConnectionManager.IOIOResponseListener, ConnectionManager.ConnectionListener, OnClickListener, OnCheckedChangeListener, JoyStickManager.JoyStickEventListener {
+public class ControllerActivity extends Activity implements SocketConnectionManager.RobotResponseListener, SocketConnectionManager.ConnectionListener, OnClickListener, OnCheckedChangeListener, JoyStickManager.JoyStickEventListener {
     private ImageView ivCameraImage;
     private CheckBox cbFlash;
 
-    private ConnectionManager connectionManager;
+    private SocketConnectionManager socketConnectionManager;
     private JoyStickManager joyStickManager;
 
     private Button btnTakePhoto;
@@ -55,16 +55,16 @@ public class ControllerActivity extends Activity implements ConnectionManager.IO
         cbFlash = (CheckBox) findViewById(R.id.cbFlash);
         cbFlash.setOnCheckedChangeListener(this);
 
-        connectionManager = new ConnectionManager(this, ipAddress, password);
-        connectionManager.start();
-        connectionManager.setConnectionListener(this);
-        connectionManager.setResponseListener(this);
+        socketConnectionManager = new SocketConnectionManager(this, ipAddress, password);
+        socketConnectionManager.start();
+        socketConnectionManager.setConnectionListener(this);
+        socketConnectionManager.setResponseListener(this);
     }
 
     @Override
     public void onStop() {
         super.onStop();
-        connectionManager.stop();
+        socketConnectionManager.stop();
         finish();
     }
 
@@ -79,19 +79,19 @@ public class ControllerActivity extends Activity implements ConnectionManager.IO
     }
 
     public void requestAutoFocus() {
-        connectionManager.sendCommand(Command.FOCUS);
+        socketConnectionManager.sendCommand(Command.FOCUS);
     }
 
     public void requestTakePhoto() {
-        connectionManager.sendCommand(Command.SNAP);
+        socketConnectionManager.sendCommand(Command.SNAP);
     }
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
         if (isChecked) {
-            connectionManager.sendCommand(Command.LED_ON);
+            socketConnectionManager.sendCommand(Command.LED_ON);
         } else {
-            connectionManager.sendCommand(Command.LED_OFF);
+            socketConnectionManager.sendCommand(Command.LED_OFF);
         }
     }
 
@@ -139,47 +139,47 @@ public class ControllerActivity extends Activity implements ConnectionManager.IO
 
     @Override
     public void onJoyStickUp(int speed) {
-        connectionManager.sendMovement(Command.FORWARD + speed);
+        socketConnectionManager.sendMovement(Command.FORWARD + speed);
     }
 
     @Override
     public void onJoyStickUpRight(int speed) {
-        connectionManager.sendMovement(Command.FORWARD_RIGHT + speed);
+        socketConnectionManager.sendMovement(Command.FORWARD_RIGHT + speed);
     }
 
     @Override
     public void onJoyStickUpLeft(int speed) {
-        connectionManager.sendMovement(Command.FORWARD_LEFT + speed);
+        socketConnectionManager.sendMovement(Command.FORWARD_LEFT + speed);
     }
 
     @Override
     public void onJoyStickDown(int speed) {
-        connectionManager.sendMovement(Command.BACKWARD + speed);
+        socketConnectionManager.sendMovement(Command.BACKWARD + speed);
     }
 
     @Override
     public void onJoyStickDownRight(int speed) {
-        connectionManager.sendMovement(Command.BACKWARD_RIGHT + speed);
+        socketConnectionManager.sendMovement(Command.BACKWARD_RIGHT + speed);
     }
 
     @Override
     public void onJoyStickDownLeft(int speed) {
-        connectionManager.sendMovement(Command.BACKWARD_LEFT + speed);
+        socketConnectionManager.sendMovement(Command.BACKWARD_LEFT + speed);
     }
 
     @Override
     public void onJoyStickRight(int speed) {
-        connectionManager.sendMovement(Command.RIGHT + speed);
+        socketConnectionManager.sendMovement(Command.RIGHT + speed);
     }
 
     @Override
     public void onJoyStickLeft(int speed) {
-        connectionManager.sendMovement(Command.LEFT + speed);
+        socketConnectionManager.sendMovement(Command.LEFT + speed);
     }
 
     @Override
     public void onJoyStickNone() {
-        connectionManager.sendMovement(Command.STOP);
-        connectionManager.sendMovement(Command.STOP);
+        socketConnectionManager.sendMovement(Command.STOP);
+        socketConnectionManager.sendMovement(Command.STOP);
     }
 }

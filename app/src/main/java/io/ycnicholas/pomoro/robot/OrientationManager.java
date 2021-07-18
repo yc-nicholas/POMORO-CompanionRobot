@@ -1,13 +1,11 @@
-package app.akexorcist.ioiocamerarobot.ioio;
+package io.ycnicholas.pomoro.robot;
 
 import java.lang.reflect.Method;
 
 import android.app.Activity;
 import android.content.Context;
-import android.hardware.SensorManager;
 import android.util.DisplayMetrics;
 import android.view.Display;
-import android.view.OrientationEventListener;
 import android.view.Surface;
 import android.view.WindowManager;
 

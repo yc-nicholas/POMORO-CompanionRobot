@@ -6,7 +6,7 @@
     android:orientation="horizontal">
 
     <Button
-        android:id="@+id/btn_ioio"
+        android:id="@+id/btn_robot"
         android:layout_width="@dimen/button_menu_width"
         android:layout_height="@dimen/button_menu_height"
         android:layout_gravity="bottom"

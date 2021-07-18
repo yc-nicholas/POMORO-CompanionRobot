@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.constant;
+package io.ycnicholas.pomoro.constant;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.
@@ -12,7 +12,7 @@ public class Command {
     public static final String SNAP = "SNAP";
     public static final String FOCUS = "FOCUS";
 
-    // Unique command for IOIO Service
+    // Unique command for Robot Service
     public static final int MESSAGE_UPDATE = 0;
     public static final int MESSAGE_CLOSE = 1;
     public static final int MESSAGE_TOAST = 2;

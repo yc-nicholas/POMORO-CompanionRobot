@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.constant;
+package io.ycnicholas.pomoro.constant;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.
@@ -10,5 +10,6 @@ public class ExtraKey {
     public static final String OWN_PASSWORD = "own_password";
     public static final String TARGET_PASSWORD = "target_password";
     public static final String IP_ADDRESS = "ip_address";
-
+    public static final String BLUETOOTH_ADDRESS = "robot_bt_address";
+    public static final String BLUETOOTH_NAME = "robot_bt_name";
 }

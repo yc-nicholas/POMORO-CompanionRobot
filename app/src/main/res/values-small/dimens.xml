@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- activity_controller_connectiononnection.xml \\ activity_ioio_setup.xmlction.xml -->
+    <!-- activity_controller_connectiononnection.xml \\ activity_robot_setup.xmlction.xml -->
     <dimen name="connection_text_size">17sp</dimen>   
     <dimen name="login_button_size">100dp</dimen>  
     <dimen name="image_mode_size">100dp</dimen>  

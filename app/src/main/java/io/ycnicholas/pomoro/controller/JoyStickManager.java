@@ -1,12 +1,12 @@
-package app.akexorcist.ioiocamerarobot.controller;
+package io.ycnicholas.pomoro.controller;
 
 import android.content.Context;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 
-import app.akexorcist.ioiocamerarobot.R;
-import app.akexorcist.ioiocamerarobot.utils.JoyStickView;
+import io.ycnicholas.pomoro.R;
+import io.ycnicholas.pomoro.utils.JoyStickView;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.

@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.ioio;
+package io.ycnicholas.pomoro.robot;
 
 import android.os.Handler;
 import android.os.Message;
@@ -8,22 +8,23 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.net.Socket;
 
-import app.akexorcist.ioiocamerarobot.constant.Command;
+import io.ycnicholas.pomoro.constant.Command;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.
+ * This class is created to manage socket connection on the robot side. (server)
  */
-public class ConnectionManager {
+public class SocketConnectionManager {
     private ConnectionListener connectionListener;
     private ControllerCommandListener commandListener;
     private SendCommandListener sendListener;
     private OutputStream out;
     private DataOutputStream dos;
-    private IOIOService ioio;
+    private RobotService robotService;
     private String password;
 
 
-    public ConnectionManager(String password) {
+    public SocketConnectionManager(String password) {
         this.password = password;
     }
 
@@ -40,8 +41,8 @@ public class ConnectionManager {
     }
 
     public void start() {
-        ioio = new IOIOService(mHandler, password);
-        ioio.execute();
+        robotService = new RobotService(mHandler, password);
+        robotService.execute();
     }
 
     Handler mHandler = new Handler() {
@@ -185,8 +186,8 @@ public class ConnectionManager {
     }
 
     public void stop() {
-        if (ioio != null)
-            ioio.killTask();
+        if (robotService != null)
+            robotService.killTask();
     }
 
     public void restart() {

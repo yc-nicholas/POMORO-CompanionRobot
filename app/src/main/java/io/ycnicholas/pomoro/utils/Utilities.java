@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.utils;
+package io.ycnicholas.pomoro.utils;
 
 import android.content.Context;
 import android.net.wifi.WifiInfo;
@@ -34,5 +34,8 @@ public class Utilities {
             }
         }
         return "Unknown";
+    }
+    public static String getBluetoothDescription(String bluetoothName, String bluetoothAddress){
+        return bluetoothName + " | " + bluetoothAddress;
     }
 }

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">Camera Robot</string>
+    <string name="app_name">POMORO</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
     <string name="password">Password</string>
@@ -22,5 +22,13 @@
     <string name="wrong_password">Wrong Password</string>
     <string name="photo_taken">Photo Taken.</string>
     <string name="connection_accepted">Connection accepted</string>
-
+    <string name="retrieve_ip">Retrieving IP...</string>
+    <string name="config_bluetooth">Configure Bluetooth</string>
+    <string name="robot_status">Robot Status</string>
+    <string name="offline">Offline</string>
+    <string name="online">Online</string>
+    <string name="connecting">Connecting</string>
+    <string name="scanning">Scanning...</string>
+    <string name="scan_completed">Scan Completed!</string>
+    <string name="connect_robot_required">Connect to robot via bluetooth first!</string>
 </resources>

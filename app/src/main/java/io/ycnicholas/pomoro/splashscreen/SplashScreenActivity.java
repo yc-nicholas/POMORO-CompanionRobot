@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.splashscreen;
+package io.ycnicholas.pomoro.splashscreen;
 
 import android.animation.Animator;
 import android.animation.AnimatorInflater;
@@ -8,27 +8,27 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.ImageView;
 
-import app.akexorcist.ioiocamerarobot.R;
-import app.akexorcist.ioiocamerarobot.menu.MenuActivity;
+import io.ycnicholas.pomoro.R;
+import io.ycnicholas.pomoro.menu.MenuActivity;
 
 public class SplashScreenActivity extends Activity implements Animator.AnimatorListener {
     private AnimatorSet animatorSet;
-    private ImageView ivInexLogo;
+    private ImageView appIcon;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splashscreen);
 
-        ivInexLogo = (ImageView) findViewById(R.id.iv_inex_logo);
-        ivInexLogo.setAlpha(0f);
+        appIcon = (ImageView) findViewById(R.id.app_icon);
+        appIcon.setAlpha(0f);
 
-        goToMenuActivity();
-//        startLogoAnimation();
+        //goToMenuActivity();
+        startLogoAnimation();
     }
 
     public void startLogoAnimation() {
         animatorSet = (AnimatorSet) AnimatorInflater.loadAnimator(this, R.animator.set_splashscreen);
-        animatorSet.setTarget(ivInexLogo);
+        animatorSet.setTarget(appIcon);
         animatorSet.start();
         animatorSet.addListener(this);
     }

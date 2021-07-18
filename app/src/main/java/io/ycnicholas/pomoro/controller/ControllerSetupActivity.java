@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.controller;
+package io.ycnicholas.pomoro.controller;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -11,8 +11,8 @@ import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 
-import app.akexorcist.ioiocamerarobot.R;
-import app.akexorcist.ioiocamerarobot.constant.ExtraKey;
+import io.ycnicholas.pomoro.R;
+import io.ycnicholas.pomoro.constant.ExtraKey;
 
 public class ControllerSetupActivity extends Activity implements OnClickListener {
     private static final String DEFAULT_IP_ADDRESS = "192.168.1.1";

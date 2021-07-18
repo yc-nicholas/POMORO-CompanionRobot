@@ -12,4 +12,6 @@
     <color name="black">#000000</color>
     <color name="dark_tranparent">#20000000</color>
 
+    <color name="red">#FF0000</color>
+    <color name="orange">#FFA500</color>
 </resources>

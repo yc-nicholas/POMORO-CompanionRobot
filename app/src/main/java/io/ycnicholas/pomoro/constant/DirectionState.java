@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.constant;
+package io.ycnicholas.pomoro.constant;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.

@@ -1,19 +1,14 @@
-package app.akexorcist.ioiocamerarobot.ioio;
+package io.ycnicholas.pomoro.robot;
 
-import app.akexorcist.ioiocamerarobot.utils.Utilities;
-import app.akexorcist.ioiocamerarobot.constant.Command;
-import app.akexorcist.ioiocamerarobot.constant.DirectionState;
-import app.akexorcist.ioiocamerarobot.constant.ExtraKey;
-import app.akexorcist.ioiocamerarobot.R;
-import ioio.lib.api.DigitalOutput;
-import ioio.lib.api.PwmOutput;
-import ioio.lib.api.exception.ConnectionLostException;
-import ioio.lib.util.BaseIOIOLooper;
-import ioio.lib.util.IOIOLooper;
-import ioio.lib.util.android.IOIOActivity;
+import io.ycnicholas.pomoro.utils.Utilities;
+import io.ycnicholas.pomoro.constant.Command;
+import io.ycnicholas.pomoro.constant.DirectionState;
+import io.ycnicholas.pomoro.constant.ExtraKey;
+import io.ycnicholas.pomoro.R;
 
 import java.io.ByteArrayOutputStream;
 
+import android.annotation.SuppressLint;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
@@ -30,7 +25,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-public class IOIOControllerActivity extends IOIOActivity implements CameraManager.CameraManagerListener, Callback, ConnectionManager.ConnectionListener, ConnectionManager.ControllerCommandListener, ConnectionManager.SendCommandListener {
+public class RobotActivity extends RobotSetupActivity implements CameraManager.CameraManagerListener, Callback, SocketConnectionManager.ConnectionListener, SocketConnectionManager.ControllerCommandListener, SocketConnectionManager.SendCommandListener {
     private static final int TAKE_PICTURE_COOLDOWN = 1000;
     private RelativeLayout layoutParent;
     private TextView tvMovementSpeed;
@@ -49,7 +44,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
     private int lastPictureTakenTime = 0;
     private int directionState = DirectionState.STOP;
 
-    private ConnectionManager connectionManager;
+    private SocketConnectionManager socketConnectionManager;
     private CameraManager cameraManager;
     private OrientationManager orientationManager;
 
@@ -60,7 +55,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        setContentView(R.layout.activity_ioio);
+        setContentView(R.layout.activity_robot);
 
         String password = getIntent().getExtras().getString(ExtraKey.OWN_PASSWORD);
         int selectedPreviewSize = getIntent().getExtras().getInt(ExtraKey.PREVIEW_SIZE);
@@ -91,11 +86,11 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
                 cameraManager.requestAutoFocus();
             }
         });
-        connectionManager = new ConnectionManager(password);
-        connectionManager.start();
-        connectionManager.setConnectionListener(this);
-        connectionManager.setCommandListener(this);
-        connectionManager.setSendCommandListener(this);
+        socketConnectionManager = new SocketConnectionManager(password);
+        socketConnectionManager.start();
+        socketConnectionManager.setConnectionListener(this);
+        socketConnectionManager.setCommandListener(this);
+        socketConnectionManager.setSendCommandListener(this);
 
         orientationManager = new OrientationManager(this);
         cameraManager = new CameraManager(selectedPreviewSize);
@@ -104,7 +99,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
 
     public void onStop() {
         super.onStop();
-        connectionManager.stop();
+        socketConnectionManager.stop();
         finish();
     }
 
@@ -119,6 +114,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
         btnMoveLeft.setPressed(false);
     }
 
+    @SuppressLint("StringFormatMatches")
     public void updateMovementSpeed(int speed) {
         movementSpeed = speed;
         tvMovementSpeed.setText(getString(R.string.movement_speed, speed));
@@ -132,13 +128,13 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
     @Override
     public void onControllerConnected() {
         isConnected = true;
-        connectionManager.sendCommand(Command.ACCEPT_CONNECTION);
+        socketConnectionManager.sendCommand(Command.ACCEPT_CONNECTION);
     }
 
     @Override
     public void onWrongPassword() {
-        connectionManager.sendCommand(Command.WRONG_PASSWORD);
-        connectionManager.restart();
+        socketConnectionManager.sendCommand(Command.WRONG_PASSWORD);
+        socketConnectionManager.restart();
     }
 
     @Override
@@ -160,7 +156,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
                 cameraManager.requestFlashOff();
             }
         } else {
-            connectionManager.sendCommand(Command.FLASH_UNAVAILABLE);
+            socketConnectionManager.sendCommand(Command.FLASH_UNAVAILABLE);
         }
     }
 
@@ -303,7 +299,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
 
     @Override
     public void onPictureTaken(String filename, String path) {
-        connectionManager.sendCommand(Command.SNAP);
+        socketConnectionManager.sendCommand(Command.SNAP);
     }
 
     @Override
@@ -311,7 +307,7 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
         if (isConnected) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, bos);
-            connectionManager.sendImageData(bos.toByteArray());
+            socketConnectionManager.sendImageData(bos.toByteArray());
         }
     }
 
@@ -326,173 +322,173 @@ public class IOIOControllerActivity extends IOIOActivity implements CameraManage
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    class Looper extends BaseIOIOLooper {
-        DigitalOutput D1A, D1B, D2A, D2B, D3A, D3B, D4A, D4B;
-        PwmOutput PWM1, PWM2, PWM3, PWM4;
-
-        protected void setup() throws ConnectionLostException {
-            ioio_.openDigitalOutput(0, false);
-            D1A = ioio_.openDigitalOutput(1, false);
-            D1B = ioio_.openDigitalOutput(2, false);
-            D2A = ioio_.openDigitalOutput(4, false);
-            D2B = ioio_.openDigitalOutput(5, false);
-            D3A = ioio_.openDigitalOutput(16, false);
-            D3B = ioio_.openDigitalOutput(17, false);
-            D4A = ioio_.openDigitalOutput(18, false);
-            D4B = ioio_.openDigitalOutput(19, false);
-            PWM1 = ioio_.openPwmOutput(3, 100);
-            PWM1.setDutyCycle(0);
-            PWM2 = ioio_.openPwmOutput(6, 100);
-            PWM2.setDutyCycle(0);
-            PWM3 = ioio_.openPwmOutput(13, 100);
-            PWM3.setDutyCycle(0);
-            PWM4 = ioio_.openPwmOutput(14, 100);
-            PWM4.setDutyCycle(0);
-
-            showToastFromIOIO(getString(R.string.connected));
-        }
-
-        public void loop() throws ConnectionLostException, InterruptedException {
-            if (directionState == DirectionState.UP) {
-                PWM1.setDutyCycle((float) movementSpeed / 100);
-                PWM2.setDutyCycle((float) movementSpeed / 100);
-                PWM3.setDutyCycle((float) movementSpeed / 100);
-                PWM4.setDutyCycle((float) movementSpeed / 100);
-                D1A.write(true);
-                D1B.write(false);
-                D2A.write(true);
-                D2B.write(false);
-                D3A.write(true);
-                D3B.write(false);
-                D4A.write(true);
-                D4B.write(false);
-            } else if (directionState == DirectionState.DOWN) {
-                PWM1.setDutyCycle((float) movementSpeed / 100);
-                PWM2.setDutyCycle((float) movementSpeed / 100);
-                PWM3.setDutyCycle((float) movementSpeed / 100);
-                PWM4.setDutyCycle((float) movementSpeed / 100);
-                D1A.write(false);
-                D1B.write(true);
-                D2A.write(false);
-                D2B.write(true);
-                D3A.write(false);
-                D3B.write(true);
-                D4A.write(false);
-                D4B.write(true);
-            } else if (directionState == DirectionState.LEFT) {
-                PWM1.setDutyCycle((float) movementSpeed / 100);
-                PWM2.setDutyCycle((float) movementSpeed / 100);
-                PWM3.setDutyCycle((float) movementSpeed / 100);
-                PWM4.setDutyCycle((float) movementSpeed / 100);
-                D1A.write(false);
-                D1B.write(true);
-                D2A.write(false);
-                D2B.write(true);
-                D3A.write(true);
-                D3B.write(false);
-                D4A.write(true);
-                D4B.write(false);
-            } else if (directionState == DirectionState.RIGHT) {
-                PWM1.setDutyCycle((float) movementSpeed / 100);
-                PWM2.setDutyCycle((float) movementSpeed / 100);
-                PWM3.setDutyCycle((float) movementSpeed / 100);
-                PWM4.setDutyCycle((float) movementSpeed / 100);
-                D1A.write(true);
-                D1B.write(false);
-                D2A.write(true);
-                D2B.write(false);
-                D3A.write(false);
-                D3B.write(true);
-                D4A.write(false);
-                D4B.write(true);
-            } else if (directionState == DirectionState.UPRIGHT) {
-                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                D1A.write(true);
-                D1B.write(false);
-                D2A.write(true);
-                D2B.write(false);
-                D3A.write(true);
-                D3B.write(false);
-                D4A.write(true);
-                D4B.write(false);
-            } else if (directionState == DirectionState.UPLEFT) {
-                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                D1A.write(true);
-                D1B.write(false);
-                D2A.write(true);
-                D2B.write(false);
-                D3A.write(true);
-                D3B.write(false);
-                D4A.write(true);
-                D4B.write(false);
-            } else if (directionState == DirectionState.DOWNRIGHT) {
-                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                D1A.write(false);
-                D1B.write(true);
-                D2A.write(false);
-                D2B.write(true);
-                D3A.write(false);
-                D3B.write(true);
-                D4A.write(false);
-                D4B.write(true);
-            } else if (directionState == DirectionState.DOWNLEFT) {
-                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
-                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
-                D1A.write(false);
-                D1B.write(true);
-                D2A.write(false);
-                D2B.write(true);
-                D3A.write(false);
-                D3B.write(true);
-                D4A.write(false);
-                D4B.write(true);
-            } else if (directionState == DirectionState.STOP) {
-                PWM1.setDutyCycle(0);
-                PWM2.setDutyCycle(0);
-                PWM3.setDutyCycle(0);
-                PWM4.setDutyCycle(0);
-                D1A.write(false);
-                D1B.write(false);
-                D2A.write(false);
-                D2B.write(false);
-                D3A.write(false);
-                D3B.write(false);
-                D4A.write(false);
-                D4B.write(false);
-            }
-
-            Thread.sleep(20);
-        }
-
-        public void disconnected() {
-            showToastFromIOIO(getString(R.string.disconnected));
-        }
-
-        public void incompatible() {
-            showToastFromIOIO(getString(R.string.incompatible_firmware));
-        }
-
-        public void showToastFromIOIO(final String mesage) {
-            runOnUiThread(new Runnable() {
-                public void run() {
-                    showToast(mesage);
-                }
-            });
-        }
-    }
-
-    protected IOIOLooper createIOIOLooper() {
-        return new Looper();
-    }
+//    class Looper extends BaseIOIOLooper {
+//        DigitalOutput D1A, D1B, D2A, D2B, D3A, D3B, D4A, D4B;
+//        PwmOutput PWM1, PWM2, PWM3, PWM4;
+//
+//        protected void setup() throws ConnectionLostException {
+//            ioio_.openDigitalOutput(0, false);
+//            D1A = ioio_.openDigitalOutput(1, false);
+//            D1B = ioio_.openDigitalOutput(2, false);
+//            D2A = ioio_.openDigitalOutput(4, false);
+//            D2B = ioio_.openDigitalOutput(5, false);
+//            D3A = ioio_.openDigitalOutput(16, false);
+//            D3B = ioio_.openDigitalOutput(17, false);
+//            D4A = ioio_.openDigitalOutput(18, false);
+//            D4B = ioio_.openDigitalOutput(19, false);
+//            PWM1 = ioio_.openPwmOutput(3, 100);
+//            PWM1.setDutyCycle(0);
+//            PWM2 = ioio_.openPwmOutput(6, 100);
+//            PWM2.setDutyCycle(0);
+//            PWM3 = ioio_.openPwmOutput(13, 100);
+//            PWM3.setDutyCycle(0);
+//            PWM4 = ioio_.openPwmOutput(14, 100);
+//            PWM4.setDutyCycle(0);
+//
+//            showToastFromIOIO(getString(R.string.connected));
+//        }
+//
+//        public void loop() throws ConnectionLostException, InterruptedException {
+//            if (directionState == DirectionState.UP) {
+//                PWM1.setDutyCycle((float) movementSpeed / 100);
+//                PWM2.setDutyCycle((float) movementSpeed / 100);
+//                PWM3.setDutyCycle((float) movementSpeed / 100);
+//                PWM4.setDutyCycle((float) movementSpeed / 100);
+//                D1A.write(true);
+//                D1B.write(false);
+//                D2A.write(true);
+//                D2B.write(false);
+//                D3A.write(true);
+//                D3B.write(false);
+//                D4A.write(true);
+//                D4B.write(false);
+//            } else if (directionState == DirectionState.DOWN) {
+//                PWM1.setDutyCycle((float) movementSpeed / 100);
+//                PWM2.setDutyCycle((float) movementSpeed / 100);
+//                PWM3.setDutyCycle((float) movementSpeed / 100);
+//                PWM4.setDutyCycle((float) movementSpeed / 100);
+//                D1A.write(false);
+//                D1B.write(true);
+//                D2A.write(false);
+//                D2B.write(true);
+//                D3A.write(false);
+//                D3B.write(true);
+//                D4A.write(false);
+//                D4B.write(true);
+//            } else if (directionState == DirectionState.LEFT) {
+//                PWM1.setDutyCycle((float) movementSpeed / 100);
+//                PWM2.setDutyCycle((float) movementSpeed / 100);
+//                PWM3.setDutyCycle((float) movementSpeed / 100);
+//                PWM4.setDutyCycle((float) movementSpeed / 100);
+//                D1A.write(false);
+//                D1B.write(true);
+//                D2A.write(false);
+//                D2B.write(true);
+//                D3A.write(true);
+//                D3B.write(false);
+//                D4A.write(true);
+//                D4B.write(false);
+//            } else if (directionState == DirectionState.RIGHT) {
+//                PWM1.setDutyCycle((float) movementSpeed / 100);
+//                PWM2.setDutyCycle((float) movementSpeed / 100);
+//                PWM3.setDutyCycle((float) movementSpeed / 100);
+//                PWM4.setDutyCycle((float) movementSpeed / 100);
+//                D1A.write(true);
+//                D1B.write(false);
+//                D2A.write(true);
+//                D2B.write(false);
+//                D3A.write(false);
+//                D3B.write(true);
+//                D4A.write(false);
+//                D4B.write(true);
+//            } else if (directionState == DirectionState.UPRIGHT) {
+//                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                D1A.write(true);
+//                D1B.write(false);
+//                D2A.write(true);
+//                D2B.write(false);
+//                D3A.write(true);
+//                D3B.write(false);
+//                D4A.write(true);
+//                D4B.write(false);
+//            } else if (directionState == DirectionState.UPLEFT) {
+//                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                D1A.write(true);
+//                D1B.write(false);
+//                D2A.write(true);
+//                D2B.write(false);
+//                D3A.write(true);
+//                D3B.write(false);
+//                D4A.write(true);
+//                D4B.write(false);
+//            } else if (directionState == DirectionState.DOWNRIGHT) {
+//                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                D1A.write(false);
+//                D1B.write(true);
+//                D2A.write(false);
+//                D2B.write(true);
+//                D3A.write(false);
+//                D3B.write(true);
+//                D4A.write(false);
+//                D4B.write(true);
+//            } else if (directionState == DirectionState.DOWNLEFT) {
+//                PWM1.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM2.setDutyCycle((((float) movementSpeed / (float) 1.5) - 20) / 100);
+//                PWM3.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                PWM4.setDutyCycle((((float) movementSpeed / (float) 1.5) + 20) / 100);
+//                D1A.write(false);
+//                D1B.write(true);
+//                D2A.write(false);
+//                D2B.write(true);
+//                D3A.write(false);
+//                D3B.write(true);
+//                D4A.write(false);
+//                D4B.write(true);
+//            } else if (directionState == DirectionState.STOP) {
+//                PWM1.setDutyCycle(0);
+//                PWM2.setDutyCycle(0);
+//                PWM3.setDutyCycle(0);
+//                PWM4.setDutyCycle(0);
+//                D1A.write(false);
+//                D1B.write(false);
+//                D2A.write(false);
+//                D2B.write(false);
+//                D3A.write(false);
+//                D3B.write(false);
+//                D4A.write(false);
+//                D4B.write(false);
+//            }
+//
+//            Thread.sleep(20);
+//        }
+//
+//        public void disconnected() {
+//            showToastFromIOIO(getString(R.string.disconnected));
+//        }
+//
+//        public void incompatible() {
+//            showToastFromIOIO(getString(R.string.incompatible_firmware));
+//        }
+//
+//        public void showToastFromIOIO(final String mesage) {
+//            runOnUiThread(new Runnable() {
+//                public void run() {
+//                    showToast(mesage);
+//                }
+//            });
+//        }
+//    }
+//
+//    protected IOIOLooper createIOIOLooper() {
+//        return new Looper();
+//    }
 }

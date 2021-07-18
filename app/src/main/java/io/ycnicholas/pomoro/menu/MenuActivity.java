@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.menu;
+package io.ycnicholas.pomoro.menu;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,13 +7,13 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 
-import app.akexorcist.ioiocamerarobot.controller.ControllerSetupActivity;
-import app.akexorcist.ioiocamerarobot.ioio.IOIOSetupActivity;
-import app.akexorcist.ioiocamerarobot.R;
+import io.ycnicholas.pomoro.controller.ControllerSetupActivity;
+import io.ycnicholas.pomoro.robot.RobotSetupActivity;
+import io.ycnicholas.pomoro.R;
 
 public class MenuActivity extends Activity {
 	private Button btnController;
-	private Button btnIoio;
+	private Button btnRobot;
 	
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,10 +28,10 @@ public class MenuActivity extends Activity {
 			}
 		});
 
-        btnIoio = (Button)findViewById(R.id.btn_ioio);
-        btnIoio.setOnClickListener(new OnClickListener() {
+        btnRobot = (Button)findViewById(R.id.btn_robot);
+        btnRobot.setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
-				Intent intent = new Intent(MenuActivity.this, IOIOSetupActivity.class);
+				Intent intent = new Intent(MenuActivity.this, RobotSetupActivity.class);
 				startActivity(intent);
 			}
 		});

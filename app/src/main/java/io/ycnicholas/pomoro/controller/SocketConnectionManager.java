@@ -1,4 +1,4 @@
-package app.akexorcist.ioiocamerarobot.controller;
+package io.ycnicholas.pomoro.controller;
 
 import android.app.Activity;
 import android.graphics.Bitmap;
@@ -17,17 +17,18 @@ import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
 
-import app.akexorcist.ioiocamerarobot.constant.Command;
+import io.ycnicholas.pomoro.constant.Command;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.
+ * This class is created to manage socket connection on the controller side. (client)
  */
-public class ConnectionManager {
+public class SocketConnectionManager {
     public static final int PORT = 21111;
     public static final int TIMEOUT = 5000;
     private Activity activity;
     private ConnectionListener connectionListener;
-    private IOIOResponseListener responseListener;
+    private RobotResponseListener responseListener;
 
     private OutputStream outputStream;
     private DataOutputStream dataOutputStream;
@@ -40,7 +41,7 @@ public class ConnectionManager {
     private String ipAddress;
     private String password;
 
-    public ConnectionManager(Activity activity, String ipAddress, String password) {
+    public SocketConnectionManager(Activity activity, String ipAddress, String password) {
         this.activity = activity;
         this.ipAddress = ipAddress;
         this.password = password;
@@ -50,7 +51,7 @@ public class ConnectionManager {
         this.connectionListener = listener;
     }
 
-    public void setResponseListener(IOIOResponseListener listener) {
+    public void setResponseListener(RobotResponseListener listener) {
         this.responseListener = listener;
     }
 
@@ -144,7 +145,7 @@ public class ConnectionManager {
         public void onIOIOConnected();
     }
 
-    public interface IOIOResponseListener {
+    public interface RobotResponseListener {
         public void onPictureTaken();
 
         public void onFlashUnavailable();
