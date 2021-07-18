@@ -46,6 +46,11 @@ import io.ycnicholas.pomoro.R;
 import io.ycnicholas.pomoro.constant.ExtraKey;
 import io.ycnicholas.pomoro.utils.Utilities;
 
+/**
+ * Created by Akexorcist on 9/5/15 AD.
+ * Modified by yc-nicholas on 18/07/21
+ */
+
 public class RobotSetupActivity extends Activity implements OnClickListener, OnSeekBarChangeListener, BluetoothService.OnBluetoothScanCallback, BluetoothService.OnBluetoothEventCallback {
     public static final String TAG = "RobotSetupActivity";
     private static final int CAMERA_PERMISSION_CODE = 100;
@@ -283,10 +288,9 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.GINGERBREAD) {
             mCamera = Camera.open();
         } else {
-            mCamera = Camera.open(0);
+            mCamera = CameraManager.getFrontCameraInstance();
         }
-        Camera.Parameters params = mCamera.getParameters();
-        initPreviewSizeList(params.getSupportedPreviewSizes());
+        initPreviewSizeList(CameraManager.getSupportedPreviewSizes(mCamera));
         mCamera.release();
     }
 

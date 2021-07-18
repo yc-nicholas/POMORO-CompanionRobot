@@ -3,6 +3,7 @@ package io.ycnicholas.pomoro.robot;
 import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
@@ -15,8 +16,11 @@ import java.util.List;
 
 /**
  * Created by Akexorcist on 9/5/15 AD.
+ * Modified by yc-nicholas on 18/07/21
  */
+
 public class CameraManager implements Camera.PictureCallback, Camera.PreviewCallback {
+    private static final String TAG_CAMERA = "CameraRobot-Camera";
 
     private CameraManagerListener listener;
     private Camera mCamera;
@@ -172,12 +176,36 @@ public class CameraManager implements Camera.PictureCallback, Camera.PreviewCall
 
     public void createCameraInstance(SurfaceHolder holder) {
         try {
-            mCamera = Camera.open(0);
+            mCamera = getFrontCameraInstance();
             mCamera.setPreviewDisplay(holder);
             mCamera.startPreview();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static Camera getFrontCameraInstance(){
+        int cameraCount = 0;
+        Camera cam = null;
+        Camera.CameraInfo cameraInfo = new Camera.CameraInfo();
+        cameraCount = Camera.getNumberOfCameras();
+        for (int camIdx = 0; camIdx < cameraCount; camIdx++) {
+            Camera.getCameraInfo(camIdx, cameraInfo);
+            if (cameraInfo.facing == Camera.CameraInfo.CAMERA_FACING_FRONT) {
+                try {
+                    cam = Camera.open(camIdx);
+                } catch (RuntimeException e) {
+                    Log.e(TAG_CAMERA,
+                            "Camera failed to open: " + e.getLocalizedMessage());
+                }
+            }
+        }
+        return cam;
+    }
+
+    public static List<Camera.Size> getSupportedPreviewSizes(Camera cam){
+        Camera.Parameters params = cam.getParameters();
+        return params.getSupportedPreviewSizes();
     }
 
     public void destroyCameraInstance() {
