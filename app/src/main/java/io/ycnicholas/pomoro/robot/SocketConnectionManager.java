@@ -81,6 +81,16 @@ public class SocketConnectionManager {
                 onMoveLeftCommand((Integer) msg.obj);
             } else if (messageType == Command.MESSAGE_STOP) {
                 onMoveStopCommand();
+            } else if (messageType == Command.MESSAGE_PT_LEFT) {
+                onPanLeftCommand((Integer) msg.obj);
+            } else if (messageType == Command.MESSAGE_PT_RIGHT) {
+                onPanRightCommand((Integer) msg.obj);
+            } else if (messageType == Command.MESSAGE_PT_UP) {
+                onTiltUpCommand((Integer) msg.obj);
+            } else if (messageType == Command.MESSAGE_PT_DOWN) {
+                onTiltDownCommand((Integer) msg.obj);
+            } else if (messageType == Command.MESSAGE_PT_STOP) {
+                onPanTiltStopCommand();
             }
         }
     };
@@ -190,6 +200,31 @@ public class SocketConnectionManager {
             robotService.killTask();
     }
 
+    public void onPanLeftCommand(int speed){
+        if(commandListener != null)
+            commandListener.onPanLeftCommand(speed);
+    }
+
+    public void onPanRightCommand(int speed){
+        if(commandListener != null)
+            commandListener.onPanRightCommand(speed);
+    }
+
+    public void onTiltUpCommand(int speed){
+        if(commandListener != null)
+            commandListener.onTiltUpCommand(speed);
+    }
+
+    public void onTiltDownCommand(int speed){
+        if(commandListener != null)
+            commandListener.onTiltDownCommand(speed);
+    }
+
+    public void onPanTiltStopCommand() {
+        if(commandListener != null)
+            commandListener.onPanTiltStopCommand();
+    }
+
     public void restart() {
         stop();
         new Handler().postDelayed(new Runnable() {
@@ -262,6 +297,11 @@ public class SocketConnectionManager {
         public void onMoveLeftCommand(int speed);
         public void onMoveRightCommand(int speed);
         public void onMoveStopCommand();
+        public void onPanLeftCommand(int speed);
+        public void onPanRightCommand(int speed);
+        public void onTiltUpCommand(int speed);
+        public void onTiltDownCommand(int speed);
+        public void onPanTiltStopCommand();
     }
 
     public interface SendCommandListener {

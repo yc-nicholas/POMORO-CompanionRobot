@@ -18,16 +18,18 @@ import io.ycnicholas.pomoro.R;
 import io.ycnicholas.pomoro.constant.Command;
 import io.ycnicholas.pomoro.constant.ExtraKey;
 
-public class ControllerActivity extends Activity implements SocketConnectionManager.RobotResponseListener, SocketConnectionManager.ConnectionListener, OnClickListener, OnCheckedChangeListener, JoyStickManager.JoyStickEventListener {
+public class ControllerActivity extends Activity implements SocketConnectionManager.RobotResponseListener, SocketConnectionManager.ConnectionListener, OnClickListener, OnCheckedChangeListener{
     private ImageView ivCameraImage;
     private CheckBox cbFlash;
 
     private SocketConnectionManager socketConnectionManager;
-    private JoyStickManager joyStickManager;
+    private JoyStickManager moveJoyStickManager;
+    private JoyStickManager panTiltJoyStickManager;
 
     private Button btnTakePhoto;
     private Button btnAutoFocus;
-    private RelativeLayout layoutJoyStick;
+    private RelativeLayout layoutMoveJoyStick;
+    private RelativeLayout layoutPanTiltJoyStick;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,10 +44,6 @@ public class ControllerActivity extends Activity implements SocketConnectionMana
 
         ivCameraImage = (ImageView) findViewById(R.id.iv_camera_image);
 
-        layoutJoyStick = (RelativeLayout) findViewById(R.id.layout_joystick);
-        joyStickManager = new JoyStickManager(this, layoutJoyStick, screenHeight);
-        joyStickManager.setJoyStickEventListener(this);
-
         btnTakePhoto = (Button) findViewById(R.id.btn_take_photo);
         btnTakePhoto.setOnClickListener(this);
 
@@ -54,6 +52,100 @@ public class ControllerActivity extends Activity implements SocketConnectionMana
 
         cbFlash = (CheckBox) findViewById(R.id.cbFlash);
         cbFlash.setOnCheckedChangeListener(this);
+
+        layoutMoveJoyStick = (RelativeLayout) findViewById(R.id.layout_joystick_move);
+        moveJoyStickManager = new JoyStickManager(this, layoutMoveJoyStick, screenHeight);
+        moveJoyStickManager.setJoyStickEventListener(new JoyStickManager.JoyStickEventListener() {
+            @Override
+            public void onJoyStickUp(int speed) {
+                socketConnectionManager.sendMovement(Command.FORWARD + speed);
+            }
+
+            @Override
+            public void onJoyStickUpRight(int speed) {
+                socketConnectionManager.sendMovement(Command.FORWARD_RIGHT + speed);
+            }
+
+            @Override
+            public void onJoyStickUpLeft(int speed) {
+                socketConnectionManager.sendMovement(Command.FORWARD_LEFT + speed);
+            }
+
+            @Override
+            public void onJoyStickDown(int speed) {
+                socketConnectionManager.sendMovement(Command.BACKWARD + speed);
+            }
+
+            @Override
+            public void onJoyStickDownRight(int speed) {
+                socketConnectionManager.sendMovement(Command.BACKWARD_RIGHT + speed);
+            }
+
+            @Override
+            public void onJoyStickDownLeft(int speed) {
+                socketConnectionManager.sendMovement(Command.BACKWARD_LEFT + speed);
+            }
+
+            @Override
+            public void onJoyStickRight(int speed) {
+                socketConnectionManager.sendMovement(Command.RIGHT + speed);
+            }
+
+            @Override
+            public void onJoyStickLeft(int speed) {
+                socketConnectionManager.sendMovement(Command.LEFT + speed);
+            }
+
+            @Override
+            public void onJoyStickNone() {
+                socketConnectionManager.sendMovement(Command.STOP);
+                socketConnectionManager.sendMovement(Command.STOP);
+            }
+        });
+
+        layoutPanTiltJoyStick = (RelativeLayout) findViewById(R.id.layout_joystick_pantilt);
+        panTiltJoyStickManager = new JoyStickManager(this, layoutPanTiltJoyStick, screenHeight);
+        panTiltJoyStickManager.setJoyStickEventListener(new JoyStickManager.JoyStickEventListener() {
+            @Override
+            public void onJoyStickUp(int speed) {
+                socketConnectionManager.sendMovement(Command.TILT_UP + speed);
+            }
+
+            @Override
+            public void onJoyStickUpRight(int speed) {
+            }
+
+            @Override
+            public void onJoyStickUpLeft(int speed) {
+            }
+
+            @Override
+            public void onJoyStickDown(int speed) {
+                socketConnectionManager.sendMovement(Command.TILT_DOWN + speed);
+            }
+
+            @Override
+            public void onJoyStickDownRight(int speed) {
+            }
+
+            @Override
+            public void onJoyStickDownLeft(int speed) {
+            }
+
+            @Override
+            public void onJoyStickRight(int speed) {
+            }
+
+            @Override
+            public void onJoyStickLeft(int speed) {
+            }
+
+            @Override
+            public void onJoyStickNone() {
+                socketConnectionManager.sendMovement(Command.PT_STOP);
+                socketConnectionManager.sendMovement(Command.PT_STOP);
+            }
+        });
 
         socketConnectionManager = new SocketConnectionManager(this, ipAddress, password);
         socketConnectionManager.start();
@@ -137,49 +229,4 @@ public class ControllerActivity extends Activity implements SocketConnectionMana
         Toast.makeText(getApplicationContext(), message, Toast.LENGTH_SHORT).show();
     }
 
-    @Override
-    public void onJoyStickUp(int speed) {
-        socketConnectionManager.sendMovement(Command.FORWARD + speed);
-    }
-
-    @Override
-    public void onJoyStickUpRight(int speed) {
-        socketConnectionManager.sendMovement(Command.FORWARD_RIGHT + speed);
-    }
-
-    @Override
-    public void onJoyStickUpLeft(int speed) {
-        socketConnectionManager.sendMovement(Command.FORWARD_LEFT + speed);
-    }
-
-    @Override
-    public void onJoyStickDown(int speed) {
-        socketConnectionManager.sendMovement(Command.BACKWARD + speed);
-    }
-
-    @Override
-    public void onJoyStickDownRight(int speed) {
-        socketConnectionManager.sendMovement(Command.BACKWARD_RIGHT + speed);
-    }
-
-    @Override
-    public void onJoyStickDownLeft(int speed) {
-        socketConnectionManager.sendMovement(Command.BACKWARD_LEFT + speed);
-    }
-
-    @Override
-    public void onJoyStickRight(int speed) {
-        socketConnectionManager.sendMovement(Command.RIGHT + speed);
-    }
-
-    @Override
-    public void onJoyStickLeft(int speed) {
-        socketConnectionManager.sendMovement(Command.LEFT + speed);
-    }
-
-    @Override
-    public void onJoyStickNone() {
-        socketConnectionManager.sendMovement(Command.STOP);
-        socketConnectionManager.sendMovement(Command.STOP);
-    }
 }

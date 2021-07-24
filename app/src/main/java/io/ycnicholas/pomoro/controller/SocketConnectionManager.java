@@ -164,16 +164,18 @@ public class SocketConnectionManager {
         }
     }
 
-    public boolean sendCommand(String str) {
-        try {
-            dataOutputStream.writeInt(str.length());
-            dataOutputStream.write(str.getBytes());
-            outputStream.flush();
-            return true;
-        } catch (IOException | NullPointerException e) {
-            e.printStackTrace();
-        }
-        return false;
+    public void sendCommand(final String str) {
+        new Thread(new Runnable() {
+            public void run() {
+                try {
+                    dataOutputStream.writeInt(str.length());
+                    dataOutputStream.write(str.getBytes());
+                    outputStream.flush();
+                } catch (IOException | NullPointerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public void sendMovement(final String str) {

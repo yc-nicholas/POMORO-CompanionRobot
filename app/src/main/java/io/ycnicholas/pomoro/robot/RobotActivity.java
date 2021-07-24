@@ -350,6 +350,31 @@ public class RobotActivity extends Activity implements CameraManager.CameraManag
     }
 
     @Override
+    public void onPanLeftCommand(int speed) {
+        bluetoothWriter.write("L");
+    }
+
+    @Override
+    public void onPanRightCommand(int speed) {
+        bluetoothWriter.write("R");
+    }
+
+    @Override
+    public void onTiltUpCommand(int speed) {
+        bluetoothWriter.write("U");
+    }
+
+    @Override
+    public void onTiltDownCommand(int speed) {
+        bluetoothWriter.write("D");
+    }
+
+    @Override
+    public void onPanTiltStopCommand() {
+        bluetoothWriter.write("S");
+    }
+
+    @Override
     public void onSendCommandSuccess() {
     }
 

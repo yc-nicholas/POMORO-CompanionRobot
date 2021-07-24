@@ -31,7 +31,7 @@ public class JoyStickManager implements View.OnTouchListener {
     private void setupJoyStick(Context context, ViewGroup layoutJoyStick, int screenHeight) {
         joystick = new JoyStickView(context, layoutJoyStick, R.drawable.image_button);
         joystick.setStickSize(screenHeight / 7, screenHeight / 7);
-        joystick.setLayoutSize(screenHeight / 2, screenHeight / 2);
+        //joystick.setLayoutSize(screenHeight / 2, screenHeight / 2);
         joystick.setLayoutAlpha(100);
         joystick.setStickAlpha(255);
         joystick.setOffset((int) ((screenHeight / 9) * 0.6));

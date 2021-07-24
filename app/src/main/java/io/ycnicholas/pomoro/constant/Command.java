@@ -31,7 +31,17 @@ public class Command {
     public static final int MESSAGE_DOWNLEFT = 16;
     public static final int MESSAGE_LEFT = 17;
     public static final int MESSAGE_UPLEFT = 18;
+    public static final int MESSAGE_PT_STOP = 19;
+    public static final int MESSAGE_PT_UP = 20;
+    public static final int MESSAGE_PT_RIGHT = 21;
+    public static final int MESSAGE_PT_DOWN = 22;
+    public static final int MESSAGE_PT_LEFT = 23;
+    public static final int MESSAGE_ARMLEFT_UP = 24;
+    public static final int MESSAGE_ARMLEFT_DOWN = 25;
+    public static final int MESSAGE_ARMRIGHT_UP = 26;
+    public static final int MESSAGE_ARMRIGHT_DOWN = 27;
 
+    // for robot wheel movement
     public static final String FORWARD = "UU";
     public static final String FORWARD_RIGHT = "UR";
     public static final String FORWARD_LEFT = "UL";
@@ -42,5 +52,18 @@ public class Command {
     public static final String LEFT = "LL";
     public static final String STOP = "SS";
 
+    // for pan tilt head
+    public static final String TILT_UP = "tu";
+    public static final String TILT_DOWN = "td";
+    public static final String PAN_LEFT = "pl";
+    public static final String PAN_RIGHT = "pr";
+    public static final String PT_STOP = "ss";
 
+    // for left arm
+    public static final String ARM_LEFT_UP = "lu";
+    public static final String ARM_LEFT_DOWN = "ld";
+
+    // for right arm
+    public static final String ARM_RIGHT_UP = "ru";
+    public static final String ARM_RIGHT_DOWN = "rd";
 }

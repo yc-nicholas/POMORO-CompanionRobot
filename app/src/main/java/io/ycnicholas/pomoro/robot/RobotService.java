@@ -81,6 +81,20 @@ public class RobotService extends AsyncTask<Void, Void, Void> {
                                 handler.obtainMessage(Command.MESSAGE_LEFT, speed - 50).sendToTarget();
                             } else if (command.equalsIgnoreCase(Command.STOP)) {
                                 handler.obtainMessage(Command.MESSAGE_STOP).sendToTarget();
+                            } else if (command.equalsIgnoreCase(Command.PAN_LEFT)) {
+                                int speed = Integer.parseInt(text.substring(2, text.length()));
+                                handler.obtainMessage(Command.MESSAGE_PT_LEFT,speed - 50).sendToTarget();
+                            } else if (command.equalsIgnoreCase(Command.PAN_RIGHT)) {
+                                int speed = Integer.parseInt(text.substring(2, text.length()));
+                                handler.obtainMessage(Command.MESSAGE_PT_RIGHT, speed - 50).sendToTarget();
+                            } else if (command.equalsIgnoreCase(Command.TILT_UP)) {
+                                int speed = Integer.parseInt(text.substring(2, text.length()));
+                                handler.obtainMessage(Command.MESSAGE_PT_UP, speed - 50).sendToTarget();
+                            } else if (command.equalsIgnoreCase(Command.TILT_DOWN)) {
+                                int speed = Integer.parseInt(text.substring(2, text.length()));
+                                handler.obtainMessage(Command.MESSAGE_PT_DOWN, speed - 50).sendToTarget();
+                            } else if (command.equalsIgnoreCase(Command.PT_STOP)) {
+                                handler.obtainMessage(Command.MESSAGE_PT_STOP).sendToTarget();
                             }
                         } catch (SocketTimeoutException e) {
                         } catch (IOException e) {
