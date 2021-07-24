@@ -199,36 +199,46 @@ public class SocketConnectionManager {
         }, 1000);
     }
 
-    public void sendImageData(byte[] data) {
-        try {
-            dos.writeInt(data.length);
-            dos.write(data);
-            out.flush();
-            if(sendListener != null)
-                sendListener.onSendCommandSuccess();
-        } catch (IOException e) {
-            e.printStackTrace();
-            if(sendListener != null)
-                sendListener.onSendCommandFailure();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
+    public void sendImageData(final byte[] data) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dos.writeInt(data.length);
+                    dos.write(data);
+                    out.flush();
+                    if(sendListener != null)
+                        sendListener.onSendCommandSuccess();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if(sendListener != null)
+                        sendListener.onSendCommandFailure();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
-    public void sendCommand(String str) {
-        try {
-            dos.writeInt(str.length());
-            dos.write(str.getBytes());
-            out.flush();
-            if(sendListener != null)
-                sendListener.onSendCommandSuccess();
-        } catch (IOException e) {
-            e.printStackTrace();
-            if(sendListener != null)
-                sendListener.onSendCommandFailure();
-        } catch (NullPointerException e) {
-            e.printStackTrace();
-        }
+    public void sendCommand(final String str) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    dos.writeInt(str.length());
+                    dos.write(str.getBytes());
+                    out.flush();
+                    if(sendListener != null)
+                        sendListener.onSendCommandSuccess();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    if(sendListener != null)
+                        sendListener.onSendCommandFailure();
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
     public interface ConnectionListener {
