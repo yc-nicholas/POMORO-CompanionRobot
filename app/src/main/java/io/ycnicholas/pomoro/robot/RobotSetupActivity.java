@@ -120,8 +120,14 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
         checkPermission(Manifest.permission.CAMERA,CAMERA_PERMISSION_CODE);
         bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         bluetoothService = BluetoothService.getDefaultInstance();
-        checkBluetoothConfiguration();
         bluetoothService.setOnScanCallback(this);
+        bluetoothService.setOnEventCallback(this);
+        checkBluetoothConfiguration();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
         bluetoothService.setOnEventCallback(this);
     }
 
@@ -281,7 +287,7 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
     }
 
     public void goToRobotActivity() {
-        Intent intent = new Intent(this, RobotActivity.class);
+        Intent intent = new Intent(RobotSetupActivity.this, RobotActivity.class);
         intent.putExtra(ExtraKey.OWN_PASSWORD, etPassword.getText().toString());
         intent.putExtra(ExtraKey.PREVIEW_SIZE, selectedSizePosition);
         intent.putExtra(ExtraKey.QUALITY, sbImageQuality.getProgress());
@@ -409,7 +415,7 @@ public class RobotSetupActivity extends Activity implements OnClickListener, OnS
             robotConnected = false;
         }
         if (status == BluetoothStatus.NONE){
-            tvRobotStatus.setText(getString(R.string.offline));
+            tvRobotStatus.setText(getString(R.string.disconnected));
             tvRobotStatus.setTextColor(getResources().getColor(R.color.pink));
             robotConnected = false;
         }

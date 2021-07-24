@@ -1,6 +1,7 @@
 package io.ycnicholas.pomoro;
 
 import android.app.Application;
+import android.bluetooth.BluetoothDevice;
 
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothClassicService;
 import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothConfiguration;
@@ -40,9 +41,9 @@ public class MainApplication extends Application {
         //config.uuid = null; // When using BluetoothLeService.class set null to show all devices on scan.
         config.uuid = UUID_DEVICE; // For Classic
 
-        //config.uuidService = UUID_SERVICE; // For BLE
-        //config.uuidCharacteristic = UUID_CHARACTERISTIC; // For BLE
-        //config.transport = BluetoothDevice.TRANSPORT_LE; // Only for dual-mode devices
+        config.uuidService = UUID_SERVICE; // For BLE
+        config.uuidCharacteristic = UUID_CHARACTERISTIC; // For BLE
+        config.transport = BluetoothDevice.TRANSPORT_LE; // Only for dual-mode devices
 
         BluetoothService.init(config);
     }

@@ -1,6 +1,5 @@
 package io.ycnicholas.pomoro.robot;
 
-import io.ycnicholas.pomoro.utils.Utilities;
 import io.ycnicholas.pomoro.constant.Command;
 import io.ycnicholas.pomoro.constant.DirectionState;
 import io.ycnicholas.pomoro.constant.ExtraKey;
@@ -11,6 +10,7 @@ import java.util.HashMap;
 import java.util.Locale;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -26,21 +26,27 @@ import android.view.Display;
 import android.view.SurfaceView;
 import android.view.View;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import javax.xml.datatype.Duration;
+import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothService;
+import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothStatus;
+import com.github.douglasjunior.bluetoothclassiclibrary.BluetoothWriter;
 
 
-public class RobotActivity extends RobotSetupActivity implements CameraManager.CameraManagerListener, Callback, SocketConnectionManager.ConnectionListener, SocketConnectionManager.ControllerCommandListener, SocketConnectionManager.SendCommandListener, TextToSpeech.OnInitListener {
+public class RobotActivity extends Activity implements CameraManager.CameraManagerListener, Callback,
+        SocketConnectionManager.ConnectionListener, SocketConnectionManager.ControllerCommandListener, SocketConnectionManager.SendCommandListener,
+        BluetoothService.OnBluetoothEventCallback,
+        TextToSpeech.OnInitListener  {
+
+    public static final String TAG = "RobotActivity";
+
     private static final int TAKE_PICTURE_COOLDOWN = 1000;
     private RelativeLayout layoutParent;
     private SurfaceView surfacePreview;
-    AnimationDrawable blinkAnimation, talkAnimation;
-    ImageView emojiBlinkView, emojiTalkView;
+    private AnimationDrawable blinkAnimation, talkAnimation;
+    private ImageView emojiBlinkView, emojiTalkView;
 
     private int movementSpeed = 0;
     private int lastPictureTakenTime = 0;
@@ -50,9 +56,11 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
     private CameraManager cameraManager;
     private OrientationManager orientationManager;
     private TextToSpeech tts;
+    private BluetoothService bluetoothService;
+    private BluetoothWriter bluetoothWriter;
 
     private int imageQuality;
-    private boolean isConnected = false;
+    private boolean isControllerConnected = false;
 
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
@@ -95,8 +103,8 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
         blinkAnimation.start();
 
-        tts = new TextToSpeech(this, this);
-        tts.setOnUtteranceProgressListener(new ttsUtteranceListener());
+        bluetoothService = BluetoothService.getDefaultInstance();
+        bluetoothWriter = new BluetoothWriter(bluetoothService);
 
         socketConnectionManager = new SocketConnectionManager(password);
         socketConnectionManager.setConnectionListener(this);
@@ -106,6 +114,15 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
         orientationManager = new OrientationManager(this);
         cameraManager = new CameraManager(selectedPreviewSize);
         cameraManager.setCameraManagerListener(this);
+
+        tts = new TextToSpeech(this, this);
+        tts.setOnUtteranceProgressListener(new ttsUtteranceListener());
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        bluetoothService.setOnEventCallback(this);
     }
 
     class ttsUtteranceListener extends UtteranceProgressListener {
@@ -185,7 +202,6 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
             }else{
                 speak("Hey, human! You are looking great!");
             }
-
         } else {
             Toast.makeText(getApplicationContext(), getString(R.string.enable_tts), Toast.LENGTH_SHORT).show();
             Log.e("TTS", "Initilization Failed!");
@@ -195,9 +211,34 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
         socketConnectionManager.start();
     }
 
-    @SuppressLint("StringFormatMatches")
-    public void updateMovementSpeed(int speed) {
-        movementSpeed = speed;
+
+    @Override
+    public void onDeviceName(String deviceName) {
+        Log.d(TAG, "onDeviceName: " + deviceName);
+    }
+
+    @Override
+    public void onToast(String message) {
+        Log.d(TAG, "onToast");
+    }
+
+    @Override
+    public void onStatusChange(BluetoothStatus status) {
+        Log.d(TAG, "onStatusChange: " + status);
+        if (status == BluetoothStatus.NONE){
+            showToast("Bluetooth connection is down!");
+            finish();
+        }
+    }
+
+    @Override
+    public void onDataRead(byte[] buffer, int length) {
+        Log.d(TAG, "onDataRead: " + new String(buffer, 0, length));
+    }
+
+    @Override
+    public void onDataWrite(byte[] buffer) {
+        Log.d(TAG, "onDataWrite: " + new String(buffer));
     }
 
     @Override
@@ -207,7 +248,7 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
     @Override
     public void onControllerConnected() {
-        isConnected = true;
+        isControllerConnected = true;
         socketConnectionManager.sendCommand(Command.ACCEPT_CONNECTION);
     }
 
@@ -224,7 +265,7 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
     @Override
     public void onControllerClosed() {
-        isConnected = false;
+        isControllerConnected = false;
     }
 
     @Override
@@ -257,55 +298,55 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
     @Override
     public void onMoveForwardCommand(int movementSpeed) {
         directionState = DirectionState.UP;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("f");
     }
 
     @Override
     public void onMoveForwardRightCommand(int movementSpeed) {
         directionState = DirectionState.UPRIGHT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("x");
     }
 
     @Override
     public void onMoveForwardLeftCommand(int movementSpeed) {
         directionState = DirectionState.UPLEFT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("w");
     }
 
     @Override
     public void onMoveBackwardCommand(int movementSpeed) {
         directionState = DirectionState.DOWN;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("b");
     }
 
     @Override
     public void onMoveBackwardRightCommand(int movementSpeed) {
         directionState = DirectionState.DOWNRIGHT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("z");
     }
 
     @Override
     public void onMoveBackwardLeftCommand(int movementSpeed) {
         directionState = DirectionState.DOWNLEFT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("y");
     }
 
     @Override
     public void onMoveLeftCommand(int movementSpeed) {
         directionState = DirectionState.LEFT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("l");
     }
 
     @Override
     public void onMoveRightCommand(int movementSpeed) {
         directionState = DirectionState.RIGHT;
-        updateMovementSpeed(movementSpeed);
+        bluetoothWriter.write("r");
     }
 
     @Override
     public void onMoveStopCommand() {
         directionState = DirectionState.STOP;
-        updateMovementSpeed(0);
+        bluetoothWriter.write("s");
     }
 
     @Override
@@ -314,7 +355,7 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
     @Override
     public void onSendCommandFailure() {
-        isConnected = false;
+        isControllerConnected = false;
     }
 
     @SuppressWarnings("deprecation")
@@ -376,7 +417,7 @@ public class RobotActivity extends RobotSetupActivity implements CameraManager.C
 
     @Override
     public void onPreviewTaken(Bitmap bitmap) {
-        if (isConnected) {
+        if (isControllerConnected) {
             ByteArrayOutputStream bos = new ByteArrayOutputStream();
             bitmap.compress(Bitmap.CompressFormat.JPEG, imageQuality, bos);
             socketConnectionManager.sendImageData(bos.toByteArray());
