@@ -11,6 +11,7 @@ import java.util.Locale;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.drawable.AnimationDrawable;
@@ -25,6 +26,7 @@ import android.view.ViewGroup.LayoutParams;
 import android.view.Display;
 import android.view.SurfaceView;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -65,7 +67,10 @@ public class RobotActivity extends Activity implements CameraManager.CameraManag
     @SuppressWarnings("deprecation")
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON );
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        getWindow().getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
         setContentView(R.layout.activity_robot);
 
         String password = getIntent().getExtras().getString(ExtraKey.OWN_PASSWORD);
@@ -89,12 +94,10 @@ public class RobotActivity extends Activity implements CameraManager.CameraManag
         emojiBlinkView = (ImageView) findViewById(R.id.emojiBlinkView);
         emojiBlinkView.setImageDrawable(getResources().getDrawable(
                 R.drawable.emoji_blink_animation));
-        emojiBlinkView.setBackgroundColor(Color.rgb(253, 209, 100));
 
         emojiTalkView = (ImageView) findViewById(R.id.emojiTalkView);
         emojiTalkView.setImageDrawable(getResources().getDrawable(
                 R.drawable.emoji_talk_animation));
-        emojiTalkView.setBackgroundColor(Color.rgb(253, 209, 100));
         emojiTalkView.setVisibility(View.INVISIBLE);
 
         // Get the drawables, which has been compiled to an AnimationDrawable object
@@ -391,7 +394,7 @@ public class RobotActivity extends Activity implements CameraManager.CameraManag
         cameraManager.stopCameraPreview();
         cameraManager.initCameraParameter();
 
-        setupPreviewLayout();
+//        setupPreviewLayout();
 
         cameraManager.setCameraOrientation(orientationManager.getOrientation());
         cameraManager.startCameraPreview(surfacePreview);
