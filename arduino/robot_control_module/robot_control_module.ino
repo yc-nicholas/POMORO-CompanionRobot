@@ -4,7 +4,7 @@
 #include <DistanceGP2Y0A02YK.h>
 #include <Wire.h>
 
-#include "robot_control_module_1.1.h"
+#include "robot_control_module.h"
 
 /* create sonar objects */
 NewPing sonar_middle(SONAR_MIDDLE_TRIGGER_PIN, SONAR_MIDDLE_ECHO_PIN, MAX_DISTANCE);
